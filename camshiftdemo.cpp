@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <ctype.h>
+#include <string>
 
 using namespace cv;
 using namespace std;
@@ -51,7 +52,8 @@ static void help()
             "You select a color objects such as your face and it tracks it.\n"
             "This reads from video camera (0 by default, or the camera number the user enters\n"
             "Usage: \n"
-            "   ./camshiftdemo [camera number]\n";
+            "   camshiftdemo -c [camera_number]\n"
+            "   camshiftdemo input_movie\n";
 
     cout << "\n\nHot keys: \n"
             "\tESC - quit the program\n"
@@ -62,9 +64,10 @@ static void help()
             "To initialize tracking, select the object with mouse\n";
 }
 
-const char* keys =
+static const char* keys =
 {
-    "{1|  | 0 | camera number}"
+    "{c|camIdx|0|Camera number (default 0)}"
+    "{1|      ||input movie}"
 };
 
 int main( int argc, const char** argv )
@@ -77,13 +80,19 @@ int main( int argc, const char** argv )
     float hranges[] = {0,180};
     const float* phranges = hranges;
     CommandLineParser parser(argc, argv, keys);
-    int camNum = parser.get<int>("1");
+    int camNum = parser.get<int>("c");
+    string file = parser.get<string>("1");
 
-    cap.open(camNum);
+    if (file.empty()) {
+        cout << "Using camera " << camNum << endl;
+        cap.open(camNum);
+    } else {
+        cout << "Using file " << file << endl;
+        cap.open(file.c_str());
+    }
 
     if( !cap.isOpened() )
     {
-        help();
         cout << "***Could not initialize capturing...***\n";
         cout << "Current parameter's value: \n";
         parser.printParams();
@@ -98,17 +107,10 @@ int main( int argc, const char** argv )
     createTrackbar( "Smin", "CamShift Demo", &smin, 256, 0 );
 
     Mat frame, hsv, hue, mask, hist, histimg = Mat::zeros(200, 320, CV_8UC3), backproj;
-    bool paused = false;
+    bool paused = true;
 
-    for(;;)
+    for(cap >> frame; !frame.empty();)
     {
-        if( !paused )
-        {
-            cap >> frame;
-            if( frame.empty() )
-                break;
-        }
-
         frame.copyTo(image);
 
         if( !paused )
@@ -167,8 +169,6 @@ int main( int argc, const char** argv )
                 ellipse( image, trackBox, Scalar(0,0,255), 3, CV_AA );
             }
         }
-        else if( trackObject < 0 )
-            paused = false;
 
         if( selectObject && selection.width > 0 && selection.height > 0 )
         {
@@ -204,6 +204,9 @@ int main( int argc, const char** argv )
         default:
             ;
         }
+
+        if (!paused)
+            cap >> frame;
     }
 
     return 0;

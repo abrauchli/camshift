@@ -4,6 +4,7 @@
 #include "Spline.hpp"
 #include "Stats.hpp"
 
+#include <cstdio> // sscanf
 #include <deque>
 #include <iostream>
 #include <string>
@@ -68,9 +69,23 @@ static void help()
 
 static const char* keys =
 {
-    "{c|camIdx|0|Camera number (default 0)}"
-    "{1|      ||input movie}"
+    "{c|camIdx|0  |Camera number (default 0)}"
+    "{ |vmin  |10 |vmin (default 10)}"
+    "{ |vmax  |256|vmin (default 256)}"
+    "{s|smin  |30 |vmin (default 30)}"
+    "{r|rect  |   |initial tracking square X,Y,w,h}"
+    "{1|      |   |input movie}"
 };
+
+static void set_selection(const string& rect_str)
+{
+    int x,y,w,h;
+    if (4 == sscanf(rect_str.c_str(), "%d,%d,%d,%d", &x, &y, &w, &h)) {
+        selection = Rect(x,y,w,h);
+        selection &= Rect(0, 0, image.cols, image.rows);
+        trackObject = -1; // trigger histogram creation
+    }
+}
 
 int main(int argc, const char** argv)
 {
@@ -83,6 +98,9 @@ int main(int argc, const char** argv)
     const float* phranges = hranges;
     CommandLineParser parser(argc, argv, keys);
     int camNum = parser.get<int>("c");
+    vmin = parser.get<int>("vmin");
+    vmax = parser.get<int>("vmax");
+    smin = parser.get<int>("smin");
     string file = parser.get<string>("1");
 
     if (file.empty()) {
@@ -113,6 +131,7 @@ int main(int argc, const char** argv)
     cap >> frame;
     if (!frame.empty())
         frame.copyTo(image);
+    set_selection(parser.get<string>("rect"));
     int frameCount = 1;
     int eCount = 0;
     Stats stats;
@@ -209,7 +228,8 @@ int main(int argc, const char** argv)
             }
         }
 
-        if (selectObject && selection.width > 0 && selection.height > 0) {
+        if ((selectObject || frameCount == 1) && selection.width > 0 && selection.height > 0) {
+            // causes flickering since it re-inverts itself every frame
             Mat roi(image, selection);
             bitwise_not(roi, roi);
         }

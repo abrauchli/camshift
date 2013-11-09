@@ -2,8 +2,8 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include "Spline.hpp"
+#include "Stats.hpp"
 
-#include <ctype.h>
 #include <deque>
 #include <iostream>
 #include <string>
@@ -83,7 +83,7 @@ int main(int argc, const char** argv)
     const float* phranges = hranges;
     CommandLineParser parser(argc, argv, keys);
     int camNum = parser.get<int>("c");
-    String file = parser.get<String>("1");
+    string file = parser.get<string>("1");
 
     if (file.empty()) {
         cout << "Using camera " << camNum << endl;
@@ -108,17 +108,14 @@ int main(int argc, const char** argv)
     createTrackbar("Smin", "CamShift Demo", &smin, 256, 0);
 
     Mat frame, hsv, hue, mask, hist, histimg = Mat::zeros(200, 320, CV_8UC3), backproj;
-    deque<pair<int, Point> > points;
+    deque<pair<int, Point2f> > points;
     bool paused = true;
     cap >> frame;
     if (!frame.empty())
         frame.copyTo(image);
     int frameCount = 1;
     int eCount = 0;
-    deque<vector<float> > pred;
-    vector<vector<float> > error(10, vector<float>());
-    vector<float> mean(10, 0);
-    vector<float> dev(10, 0);
+    Stats stats;
 
     for (; !frame.empty();) {
 
@@ -166,67 +163,38 @@ int main(int argc, const char** argv)
                 // draw ten last locations
                 Point2f pts[4];
                 trackBox.points(pts);
-                Point center = (pts[0] + pts[2]) * 0.5;
+                Point2f center = (pts[0] + pts[2]) * 0.5;
                 points.push_back(make_pair(frameCount, center));
-                if (points.size() > 10)
+                if (points.size() > Stats::PREDCOUNT)
                     points.pop_front();
                 int alpha = 255;
-                for (deque<pair<int, Point> >::const_reverse_iterator it = points.rbegin(); it != points.rend(); ++it) {
+                for (deque<pair<int, Point2f> >::const_reverse_iterator it = points.rbegin(); it != points.rend(); ++it) {
                     circle(image, it->second, 4, Scalar(255,0,0,alpha), 2);
                     alpha *= 0.85;
                 }
-                // begin stats
-                if (points.size() == 10) {
-                    // validate predictions against history
-                    cout << "0\t\t1\t\t2\t\t3\t\t4\t\t5\t\t6\t\t7\t\t8\t\t9" << endl;
-                    vector<float> curpred = pred.front();
-                    int pi = 0;
-                    for (deque<pair<int, Point> >::const_reverse_iterator it = points.rbegin();
-                        it != points.rend();
-                        ++pi, ++it) {
-
-                        // mean
-                        float sqpt = sqrt(it->second.x*it->second.x+it->second.y*it->second.y);
-                        float e = sqpt - curpred[pi];
-                        e = sqrt(e*e);
-                        error[pi].push_back(e);
-                        mean[pi] = (error[pi].size() * mean[pi] + e) / (error[pi].size() + 1);
-                        cout << mean[pi] << "\t";
-
-                        // stddev
-                        int s = 0;
-                        for (vector<float>::const_iterator eit = error[pi].begin(); eit != error[pi].end(); ++eit) {
-                            s += (*eit - mean[pi]) * (*eit - mean[pi]);
-                        }
-                        dev[pi] = sqrt(s / error[pi].size());
-                        cout << dev[pi] << "\t";
-                    }
-                    cout << endl;
-                    pred.pop_front();
-                }
-                // end stats */
+                stats.print_stats(points); // does nothing with < 10 points
                 // predict next occurance
                 if (points.size() >= 3) {
                     vector<int> frames;
-                    vector<int> points_x;
-                    vector<int> points_y;
-                    for (deque<pair<int, Point> >::const_iterator it = points.begin(); it != points.end(); ++it) {
+                    vector<float> points_x;
+                    vector<float> points_y;
+                    for (deque<pair<int, Point2f> >::const_iterator it = points.begin(); it != points.end(); ++it) {
                         frames.push_back(it->first);
                         points_x.push_back(it->second.x);
                         points_y.push_back(it->second.y);
                     }
-                    Spline<int, int> spl_x(frames, points_x);
-                    Spline<int, int> spl_y(frames, points_y);
+                    Spline<int, float> spl_x(frames, points_x);
+                    Spline<int, float> spl_y(frames, points_y);
                     vector<float> curpred; // stats
                     // draw next predicted ten points
-                    for (int i = 1; i < 11; ++i) {
-                        int x = spl_x[frameCount + i];
-                        int y = spl_y[frameCount + i];
+                    for (int i = 1; i <= Stats::PREDCOUNT; ++i) {
+                        float x = spl_x[frameCount + i];
+                        float y = spl_y[frameCount + i];
                         curpred.push_back(sqrt(x*x+y*y)); // stats
-                        Point p(x, y);
+                        Point2f p(x, y);
                         circle(image, p, 4, Scalar(0,255,0), 2);
                     }
-                    pred.push_back(curpred); // stats
+                    stats.add_pred(curpred);
                 }
                 if (trackWindow.area() <= 1) {
                     int cols = backproj.cols, rows = backproj.rows, r = (MIN(cols, rows) + 5)/6;

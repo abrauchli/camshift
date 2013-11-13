@@ -43,8 +43,11 @@ static void onMouse(int event, int x, int y, int, void*)
         break;
     case CV_EVENT_LBUTTONUP:
         selectObject = false;
-        if (selection.width > 0 && selection.height > 0)
+        if (selection.width > 0 && selection.height > 0) {
             trackObject = -1;
+            cout << "Selection: " << selection.x << "," << selection.y << ","
+                 << selection.width << "," << selection.height << endl;
+        }
         break;
     }
 }

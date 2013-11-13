@@ -75,6 +75,7 @@ static const char* keys =
     "{c|camIdx|0  |Camera number (default 0)}"
     "{ |vmin  |10 |vmin (default 10)}"
     "{ |vmax  |256|vmin (default 256)}"
+    "{p|play  |false|Start playing immediately (default false)}"
     "{s|smin  |30 |vmin (default 30)}"
     "{r|rect  |   |initial tracking square X,Y,w,h}"
     "{1|      |   |input movie}"
@@ -104,6 +105,7 @@ int main(int argc, const char** argv)
     vmin = parser.get<int>("vmin");
     vmax = parser.get<int>("vmax");
     smin = parser.get<int>("smin");
+    bool startPlayback = parser.get<bool>("p");
     string file = parser.get<string>("1");
 
     if (file.empty()) {
@@ -130,7 +132,7 @@ int main(int argc, const char** argv)
 
     Mat frame, hsv, hue, mask, hist, histimg = Mat::zeros(200, 320, CV_8UC3), backproj;
     deque<pair<int, Point2f> > points;
-    bool paused = true;
+    bool paused = !startPlayback;
     cap >> frame;
     if (!frame.empty())
         frame.copyTo(image);

@@ -2,27 +2,32 @@
 
 using namespace cv;
 
-template<typename X, typename Y>
-class CLSFit {
+template<int D, typename X, typename Y>
+class LSFit
+{
 public:
-    CLSFit(const vector<X> &x, const vector<Y> &y) : xs(x), ys(y) {
+    LSFit(const vector<X> &x, const vector<Y> &y) : xs(x), ys(y) {
         solve_cls();
     }
 
     void solve_cls() {
         int n = xs.size();
-        Mat x(n, 4, DataType<Y>::type);
+        Mat x(n, D+1, DataType<Y>::type);
         Mat y(ys);
 
         x.col(0) = Scalar(1);
         Mat(xs).convertTo(x.col(1), DataType<Y>::type);
-        pow(x.col(1), 2, x.col(2));
-        pow(x.col(1), 3, x.col(3));
+        for (int d = 2; d <= D; ++d) {
+            pow(x.col(1), d, x.col(d));
+        }
         solve(x, y, coef, DECOMP_QR); // alternatively DECOMP_SVD
     }
 
     Y interpolate(const X& x) const {
-        return coef[3] * pow(x, 3) + coef[2] * pow(x, 2) + coef[1] * x + coef[0];
+        Y sum = 0;
+        for (int d = D; d >= 0; --d)
+            sum += coef(d) * pow(x, d);
+        return sum;
     }
 
     Y operator[](const X& x) const {
@@ -31,5 +36,9 @@ public:
 private:
     const vector<X> &xs;
     const vector<Y> &ys;
-    Vec<Y, 4> coef;
+    Vec<Y, D+1> coef;
 };
+
+// cpp11
+// template<typename X, typename Y>
+// using CLSFit = LSFit<3, X, Y>;

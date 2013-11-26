@@ -198,9 +198,9 @@ int main(int argc, const char** argv)
                     alpha *= 0.85;
                 }
                 stats.print_stats(points); // does nothing with < 10 points
-                stats_cls.print_stats(points); // does nothing with < 10 points
+                stats_cls.print_stats(points, false); // does nothing with < 10 points
                 // predict next occurance
-                if (points.size() >= 4) {
+                if (points.size() >= 5) {
                     vector<int> frames;
                     vector<float> points_x;
                     vector<float> points_y;
@@ -211,8 +211,10 @@ int main(int argc, const char** argv)
                     }
                     Spline<int, float> spl_x(frames, points_x);
                     Spline<int, float> spl_y(frames, points_y);
-                    CLSFit<int, float> cls_x(frames, points_x);
-                    CLSFit<int, float> cls_y(frames, points_y);
+                    LSFit<3, int, float> cls_x(frames, points_x);
+                    LSFit<3, int, float> cls_y(frames, points_y);
+                    LSFit<3, int, float> clsw_x(frames, points_x, true);
+                    LSFit<3, int, float> clsw_y(frames, points_y, true);
                     vector<float> curpred; // stats
                     vector<float> curpred_cls; // stats
                     // draw next predicted ten points
@@ -221,13 +223,16 @@ int main(int argc, const char** argv)
                         float y = spl_y[frameCount + i];
                         float c_x = cls_x[frameCount + i];
                         float c_y = cls_y[frameCount + i];
+                        float cw_x = clsw_x[frameCount + i];
+                        float cw_y = clsw_y[frameCount + i];
                         curpred.push_back(sqrt(x*x+y*y)); // stats
                         curpred_cls.push_back(sqrt(c_x*c_x+c_y*c_y)); // stats
                         Point2f p(x, y);
                         circle(image, p, 4, Scalar(0,255,0), 2);
                         Point2f c_p(c_x, c_y);
                         circle(image, c_p, 4, Scalar(255,255,255), 2);
-                        cout << c_x << "x" << c_y << " ";
+                        Point2f cw_p(cw_x, cw_y);
+                        circle(image, cw_p, 4, Scalar(255,200,200), 2);
                     }
                     stats.add_pred(curpred);
                     stats_cls.add_pred(curpred_cls);

@@ -13,21 +13,26 @@ using namespace std;
 
 class Stats {
 public:
-    static const size_t PREDCOUNT = 10;
+    static const size_t PREDCOUNT = 40;
 
     Stats() {
         pred = deque<vector<float> >();
-        error = vector<vector<float> >(10, vector<float>());
-        mean = vector<float>(10, 0);
-        dev = vector<float>(10, 0);
+        error = vector<vector<float> >(PREDCOUNT, vector<float>());
+        mean = vector<float>(PREDCOUNT, 0);
+        dev = vector<float>(PREDCOUNT, 0);
     }
 
-    void print_stats(const deque<pair<int, Point2f> >& points) {
+    void print_stats(const deque<pair<int, Point2f> >& points, bool print_header = true) {
         if (points.size() < PREDCOUNT)
             return;
         // validate predictions against history
-        cout << "Prediction <mean, stddev>" << endl;
-        cout << "1\t\t2\t\t3\t\t4\t\t5\t\t6\t\t7\t\t8\t\t9\t\t10" << endl;
+        if (print_header) {
+            cout << "Prediction <mean, stddev>" << endl;
+            int i(1);
+            for (; i < PREDCOUNT; ++i)
+                cout << i << "\t\t";
+            cout << i << endl;
+        }
         vector<float> curpred = pred.front();
         int pi = 0;
         for (deque<pair<int, Point2f> >::const_reverse_iterator it = points.rbegin();

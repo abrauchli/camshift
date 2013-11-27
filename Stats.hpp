@@ -36,7 +36,7 @@ public:
         vector<float> curpred = pred.front();
         int pi = 0;
         for (deque<pair<int, Point2f> >::const_reverse_iterator it = points.rbegin();
-            it != points.rend();
+            it != points.rend() && pi < curpred.size();
             ++pi, ++it) {
 
             // mean

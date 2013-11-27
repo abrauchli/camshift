@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 2.8)
+project( curvetrack )
+find_package( OpenCV REQUIRED )
+add_executable( curvetrack curvetrack.cpp )
+target_link_libraries( curvetrack ${OpenCV_LIBS} )

@@ -29,6 +29,10 @@ struct VideoProcessor
         setMouseCallback(wndname.c_str(), on_mouse, this);
     }
 
+    virtual ~VideoProcessor()
+    {
+    }
+
     // Applies scaling or rotational transformation to input movie.
     void SetTransform(int Rotate, int Scale)
     {

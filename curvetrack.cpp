@@ -95,6 +95,7 @@ int main(int argc, char** argv)
         }
 
         camshift->Play(paused);
+        delete camshift;
     }
     catch (cmdln::help_exception_t he)
     {

@@ -1,7 +1,6 @@
 #ifndef __CAM_SHIFT_PROCESSOR_HPP__
 #define __CAM_SHIFT_PROCESSOR_HPP__
 
-#include <utility> // pair
 #include <vector>
 
 #include "VideoProcessor.hpp"

@@ -3,7 +3,7 @@
 #include "opencv2/highgui/highgui.hpp"
 #include "Spline.hpp"
 #include "Stats.hpp"
-#include "CLSFit.hpp"
+#include "LSFit.hpp"
 
 #include <cstdio> // sscanf
 #include <deque>

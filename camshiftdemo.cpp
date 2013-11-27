@@ -3,6 +3,7 @@
 #include "opencv2/highgui/highgui.hpp"
 #include "Spline.hpp"
 #include "Stats.hpp"
+#include "CLSFit.hpp"
 
 #include <cstdio> // sscanf
 #include <deque>
@@ -137,15 +138,15 @@ int main(int argc, const char** argv)
     if (!frame.empty())
         frame.copyTo(image);
     set_selection(parser.get<string>("rect"));
-    int frameCount = 1;
+    int frameCount = 0;
     int eCount = 0;
     Stats stats;
+    Stats stats_cls;
 
     for (; !frame.empty();) {
 
         if (!paused) {
             frame.copyTo(image);
-            ++frameCount;
             cvtColor(image, hsv, CV_BGR2HSV);
 
             if (trackObject) {
@@ -197,8 +198,9 @@ int main(int argc, const char** argv)
                     alpha *= 0.85;
                 }
                 stats.print_stats(points); // does nothing with < 10 points
+                stats_cls.print_stats(points, false); // does nothing with < 10 points
                 // predict next occurance
-                if (points.size() >= 3) {
+                if (points.size() >= 5) {
                     vector<int> frames;
                     vector<float> points_x;
                     vector<float> points_y;
@@ -209,16 +211,31 @@ int main(int argc, const char** argv)
                     }
                     Spline<int, float> spl_x(frames, points_x);
                     Spline<int, float> spl_y(frames, points_y);
+                    LSFit<3, int, float> cls_x(frames, points_x);
+                    LSFit<3, int, float> cls_y(frames, points_y);
+                    LSFit<3, int, float> clsw_x(frames, points_x, true);
+                    LSFit<3, int, float> clsw_y(frames, points_y, true);
                     vector<float> curpred; // stats
+                    vector<float> curpred_cls; // stats
                     // draw next predicted ten points
                     for (int i = 1; i <= Stats::PREDCOUNT; ++i) {
                         float x = spl_x[frameCount + i];
                         float y = spl_y[frameCount + i];
+                        float c_x = cls_x[frameCount + i];
+                        float c_y = cls_y[frameCount + i];
+                        float cw_x = clsw_x[frameCount + i];
+                        float cw_y = clsw_y[frameCount + i];
                         curpred.push_back(sqrt(x*x+y*y)); // stats
+                        curpred_cls.push_back(sqrt(c_x*c_x+c_y*c_y)); // stats
                         Point2f p(x, y);
                         circle(image, p, 4, Scalar(0,255,0), 2);
+                        Point2f c_p(c_x, c_y);
+                        circle(image, c_p, 4, Scalar(255,255,255), 2);
+                        Point2f cw_p(cw_x, cw_y);
+                        circle(image, cw_p, 4, Scalar(255,200,200), 2);
                     }
                     stats.add_pred(curpred);
+                    stats_cls.add_pred(curpred_cls);
                 }
                 if (trackWindow.area() <= 1) {
                     int cols = backproj.cols, rows = backproj.rows, r = (MIN(cols, rows) + 5)/6;
@@ -233,7 +250,7 @@ int main(int argc, const char** argv)
             }
         }
 
-        if ((selectObject || frameCount == 1) && selection.width > 0 && selection.height > 0) {
+        if ((selectObject || frameCount == 0) && selection.width > 0 && selection.height > 0) {
             // causes flickering since it re-inverts itself every frame
             Mat roi(image, selection);
             bitwise_not(roi, roi);
@@ -268,8 +285,10 @@ int main(int argc, const char** argv)
             ;
         }
 
-        if (!paused)
+        if (!paused) {
             cap >> frame;
+            ++frameCount;
+        }
     }
 
     return 0;

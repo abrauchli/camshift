@@ -29,10 +29,6 @@ protected:
     LSFit<LS::CURVE_DEG_CUBIC, int, float> lsf_y;
     Stats           stats;
 
-    template <typename T> int sgn(T val) {
-        return (T(0) < val) - (val < T(0));
-    }
-
     virtual void track_results(Mat Image, const RotatedRect &TrackBox)
     {
         Point2f     pts[4];
@@ -45,10 +41,14 @@ protected:
         // clear history when radical direction changes happen
         size_t sx = lsf_x.size();
         size_t sy = lsf_y.size();
-        if (sx >= 2 && (lsf_x.at(sx-1) - lsf_x.at(sx-2)) * (center.x - lsf_x.at(sx-1)) < 0)
+        if (sx >= 2 && (lsf_x.at(sx-1) - lsf_x.at(sx-2)) * (center.x - lsf_x.at(sx-1)) < 0) {
+            cout << "cleared x: " << lsf_x.at(sx-2) << ", " << lsf_x.at(sx-1) << ", " << center.x << endl;
             lsf_x.clear();
-        if (sy >= 2 && (lsf_y[sy-1] - lsf_y[sy-2]) * (center.y - lsf_y.at(sy-1)) < 0)
+        }
+        if (sy >= 2 && (lsf_y[sy-1] - lsf_y[sy-2]) * (center.y - lsf_y.at(sy-1)) < 0) {
+            cout << "cleared y: " << lsf_y.at(sy-2) << ", " << lsf_y.at(sy-1) << ", " << center.y << endl;
             lsf_y.clear();
+        }
 
         // add new points to curve fitting algorithm (LSFit)
         lsf_x.push_back(frameCount, center.x);

@@ -70,7 +70,4 @@ private:
     Mat coef;
 };
 
-// cpp11
-// template<typename X, typename Y>
-// using CLSFit = LSFit<3, X, Y>;
 }

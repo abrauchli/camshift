@@ -24,15 +24,6 @@ public:
     {
     }
 
-    LSFit(const vector<X> &x, const vector<Y> &y, bool w = false)
-        :   xs(x),
-            ys(y),
-            weighted(w),
-            coef(D, 1, DataType<Y>::type)
-    {
-        solve_ls();
-    }
-
     void solve_ls() {
         size_t n = ys.size();
         int dim = n < D ? n : D;

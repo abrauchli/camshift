@@ -1,8 +1,6 @@
 #ifndef __CAM_SHIFT_PROCESSOR_HPP__
 #define __CAM_SHIFT_PROCESSOR_HPP__
 
-#include <vector>
-
 #include "VideoProcessor.hpp"
 
 class CamShiftProcessor : public VideoProcessor

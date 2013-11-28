@@ -18,7 +18,6 @@ public:
             HISTORY_LEN(50),
             lsf_x(true),
             lsf_y(true)
-            //point_history_first_frame(frameCount)
     {
     }
 

@@ -61,7 +61,7 @@ public:
         return ys.size();
     }
 
-    int at(int i) const {
+    Y at(size_t i) {
         return ys[i];
     }
 

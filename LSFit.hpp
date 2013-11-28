@@ -2,23 +2,46 @@
 
 using namespace cv;
 
+namespace LS {
+
+enum CurveDegree {
+    CURVE_DEG_CONST = 1,
+    CURVE_DEG_LIN,
+    CURVE_DEG_QUAD,
+    CURVE_DEG_CUBIC,
+    CURVE_DEG_QUART,
+    CURVE_DEG_QUINT
+};
+
 template<int D, typename X, typename Y>
 class LSFit
 {
 public:
-    LSFit(const vector<X> &x, const vector<Y> &y, bool w = false) : xs(x), ys(y), weighted(w) {
-        solve_cls();
+
+    LSFit(const vector<X> &x, const vector<Y> &y, bool w = false)
+    :   xs(x),
+        ys(y),
+        weighted(w),
+        coef(D, 1, DataType<Y>::type)
+    {
+        solve_ls();
     }
 
-    void solve_cls() {
-        int n = xs.size();
-        Mat x(n, D+1, DataType<Y>::type);
+    void solve_ls() {
+        size_t n = ys.size();
+        int dim = n < D ? n : D;
+        if (n < D || coef.rows < dim)
+            coef.resize(dim, 0);
+
+        Mat x(n, dim, DataType<Y>::type);
         Mat y(ys);
-        Mat w(n, 1, DataType<Y>::type);
+        assert(coef.rows >= dim && dim == x.cols);
+        assert(x.rows == y.rows);
 
         x.col(0) = Scalar(1);
-        Mat(xs).convertTo(x.col(1), DataType<Y>::type);
-        for (int d = 2; d <= D; ++d)
+        if (dim > 1)
+            Mat(xs).convertTo(x.col(1), DataType<Y>::type);
+        for (int d = 2; d < dim; ++d)
             pow(x.col(1), d, x.col(d));
 
         if (weighted) {
@@ -31,9 +54,9 @@ public:
     }
 
     Y interpolate(const X& x) const {
-        Y sum = 0;
-        for (int d = D; d >= 0; --d)
-            sum += coef(d) * pow(x, d);
+        Y sum(0);
+        for (size_t d = 0; d < coef.rows; ++d)
+            sum += coef.at<Y>(d, 0) * pow(x, d);
         return sum;
     }
 
@@ -44,9 +67,10 @@ private:
     bool weighted;
     const vector<X> &xs;
     const vector<Y> &ys;
-    Vec<Y, D+1> coef;
+    Mat coef;
 };
 
 // cpp11
 // template<typename X, typename Y>
 // using CLSFit = LSFit<3, X, Y>;
+}

@@ -18,11 +18,17 @@ class LSFit
 {
 public:
 
+    LSFit(bool w = false)
+        :   weighted(w),
+            coef(D, 1, DataType<Y>::type)
+    {
+    }
+
     LSFit(const vector<X> &x, const vector<Y> &y, bool w = false)
-    :   xs(x),
-        ys(y),
-        weighted(w),
-        coef(D, 1, DataType<Y>::type)
+        :   xs(x),
+            ys(y),
+            weighted(w),
+            coef(D, 1, DataType<Y>::type)
     {
         solve_ls();
     }
@@ -53,6 +59,26 @@ public:
         solve(x, y, coef, DECOMP_QR); // alternatively DECOMP_SVD
     }
 
+    size_t size() const {
+        return ys.size();
+    }
+
+    int at(int i) const {
+        return ys[i];
+    }
+
+    void push_back(X x, Y y, bool solve = true) {
+        xs.push_back(x);
+        ys.push_back(y);
+        if (solve)
+            solve_ls();
+    }
+
+    void clear() {
+        xs.clear();
+        ys.clear();
+    }
+
     Y interpolate(const X& x) const {
         Y sum(0);
         for (size_t d = 0; d < coef.rows; ++d)
@@ -65,8 +91,8 @@ public:
     }
 private:
     bool weighted;
-    const vector<X> &xs;
-    const vector<Y> &ys;
+    vector<X> xs;
+    vector<Y> ys;
     Mat coef;
 };
 

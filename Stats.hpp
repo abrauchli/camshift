@@ -13,7 +13,7 @@ using namespace std;
 
 class Stats {
 public:
-    static const size_t PREDCOUNT = 40;
+    static const int PREDCOUNT = 40;
 
     Stats() {
         pred = deque<vector<float> >();
@@ -29,8 +29,10 @@ public:
         if (print_header) {
             cout << "Prediction <mean, stddev>" << endl;
             int i(1);
-            for (; i < PREDCOUNT; ++i)
-                cout << i << "\t\t";
+            for (; i < PREDCOUNT; ++i) {
+                if (i <= 5 || i % 10 == 0)
+                    cout << i << "\t\t";
+            }
             cout << i << endl;
         }
         vector<float> curpred = pred.front();
@@ -41,11 +43,11 @@ public:
 
             // mean
             float sqpt = sqrt(it->second.x*it->second.x+it->second.y*it->second.y);
-            float e = sqpt - curpred[pi];
-            e = sqrt(e*e);
+            float e = abs(sqpt - curpred[pi]);
             error[pi].push_back(e);
             mean[pi] = (error[pi].size() * mean[pi] + e) / (error[pi].size() + 1);
-            cout << mean[pi] << "\t";
+            if (pi < 5 || pi % 10 == 0 || pi == PREDCOUNT -1)
+                cout << mean[pi] << "\t";
 
             // stddev
             int s = 0;
@@ -53,7 +55,8 @@ public:
                 s += (*eit - mean[pi]) * (*eit - mean[pi]);
             }
             dev[pi] = sqrt(s / error[pi].size());
-            cout << dev[pi] << "\t";
+            if (pi < 5 || pi % 10 == 0 || pi == PREDCOUNT -1)
+                cout << dev[pi] << "\t";
         }
         cout << endl;
     }

@@ -41,8 +41,6 @@ public:
 
         Mat x(n, dim, DataType<Y>::type);
         Mat y(ys);
-        assert(coef.rows >= dim && dim == x.cols);
-        assert(x.rows == y.rows);
 
         x.col(0) = Scalar(1);
         if (dim > 1)

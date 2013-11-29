@@ -31,18 +31,18 @@ public:
             coef.resize(dim, 0);
 
         Mat x(n, dim, DataType<Y>::type);
-        Mat y(ys);
+        Mat y(ys, weighted); // need a copy of data when using weights
 
         x.col(0) = Scalar(1);
         if (dim > 1)
-            Mat(xs).convertTo(x.col(1), DataType<Y>::type);
+            Mat(xs, weighted).convertTo(x.col(1), DataType<Y>::type);
         for (int d = 2; d < dim; ++d)
             pow(x.col(1), d, x.col(d));
 
         if (weighted) {
             for (int i = 1; i < n; ++i) {
-                x.row(i) *= i;
-                y.row(i) *= i;
+                x.row(i) *= i * 0.25;
+                y.row(i) *= i * 0.25;
             }
         }
         solve(x, y, coef, DECOMP_QR); // alternatively DECOMP_SVD

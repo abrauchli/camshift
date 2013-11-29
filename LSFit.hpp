@@ -48,7 +48,7 @@ public:
         solve(x, y, coef, DECOMP_QR); // alternatively DECOMP_SVD
     }
 
-    size_t size() const {
+    size_t size() {
         return ys.size();
     }
 
@@ -68,14 +68,14 @@ public:
         ys.clear();
     }
 
-    Y interpolate(const X& x) const {
+    const Y interpolate(const X& x) const {
         Y sum(0);
         for (size_t d = 0; d < coef.rows; ++d)
             sum += coef.at<Y>(d, 0) * pow(x, d);
         return sum;
     }
 
-    Y operator[](const X& x) const {
+    const Y operator[](const X& x) const {
         return interpolate(x);
     }
 private:

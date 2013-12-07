@@ -80,6 +80,7 @@ protected:
             backproj &= mask;
 
             trackWindow = search_window(image, trackBox, trackWindow);
+            rectangle(image, trackWindow, Scalar(0,0,0));
 
             trackBox = CamShift(backproj, trackWindow,
                                  TermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 10, 1));

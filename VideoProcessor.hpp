@@ -77,6 +77,10 @@ struct VideoProcessor
 
             switch (c) 
             {
+            case 'b':
+                backproj = !backproj;
+                break;
+
             case 'p':
                 paused = !paused;
                 break ;
@@ -158,6 +162,11 @@ protected:
     {
     }
 
+    bool backproj_mode()
+    {
+        return backproj;
+    }
+
     int             frameCount;
 
 private:
@@ -168,6 +177,7 @@ private:
     double          rotate;
     int             scale;
     bool            paused;
+    bool            backproj;
     bool            quit;
     bool            selecting;
     Rect            selection;

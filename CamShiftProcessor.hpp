@@ -93,8 +93,7 @@ protected:
                               Rect(0, 0, cols, rows);
             }
 
-            // todo - fixme
-            if (false)
+            if (backproj_mode())
                 cvtColor(backproj, image, CV_GRAY2BGR);
 
             track_results(image, trackBox);

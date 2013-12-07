@@ -29,6 +29,14 @@ protected:
     LSFit<LS::CURVE_DEG_CUBIC, int, float> lsf_y;
     Stats           stats;
 
+    virtual Rect search_window(Mat Image, const RotatedRect &TrackBox, const Rect &TrackWindow) {
+        if (frameCount <= 1)
+            return TrackWindow;
+        float w = TrackWindow.width;
+        float h = TrackWindow.height;
+        return Rect (lsf_x[frameCount] - (w/2), lsf_y[frameCount] - (h/2), w, h);
+    }
+
     virtual void track_results(Mat Image, const RotatedRect &TrackBox)
     {
         Point2f     pts[4];

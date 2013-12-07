@@ -79,7 +79,6 @@ struct VideoProcessor
             {
             case 'p':
                 paused = !paused;
-                process_frame(image);
                 break ;
 
             case 27:

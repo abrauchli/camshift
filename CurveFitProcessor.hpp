@@ -49,11 +49,11 @@ protected:
         // clear history when radical direction changes happen
         size_t sx = lsf_x.size();
         size_t sy = lsf_y.size();
-        if (sx >= 2 && (lsf_x.at(sx-1) - lsf_x.at(sx-2)) * (center.x - lsf_x.at(sx-1)) < 0) {
+        if (sx >= 2 && (lsf_x.at(sx-1) - lsf_x.at(sx-2)) * (center.x - lsf_x.at(sx-1)) < -2) {
             cout << "cleared x: " << lsf_x.at(sx-2) << ", " << lsf_x.at(sx-1) << ", " << center.x << endl;
             lsf_x.clear();
         }
-        if (sy >= 2 && (lsf_y[sy-1] - lsf_y[sy-2]) * (center.y - lsf_y.at(sy-1)) < 0) {
+        if (sy >= 2 && (lsf_y.at(sy-1) - lsf_y.at(sy-2)) * (center.y - lsf_y.at(sy-1)) < -2) {
             cout << "cleared y: " << lsf_y.at(sy-2) << ", " << lsf_y.at(sy-1) << ", " << center.y << endl;
             lsf_y.clear();
         }
